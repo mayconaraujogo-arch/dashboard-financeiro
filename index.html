@@ -3,24 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Finanças Cloud V7</title>
+  <title>Finanças Cloud V8</title>
   <meta name="theme-color" content="#820AD1" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-  <div class="top-status" id="topStatus">🔐 Login Google + app financeiro completo</div>
+<body class="theme-purple">
+  <div class="top-status" id="topStatus">🔐 Finanças Cloud V8</div>
 
   <main id="loginScreen" class="login-screen">
     <section class="login-card">
       <div class="login-logo">💜</div>
       <h1>Finanças Cloud</h1>
-      <p>Seu controle financeiro pessoal com login Google, histórico mensal, parcelas, cartões, metas e sincronização entre PC e celular.</p>
+      <p>Controle financeiro com login Google, histórico mensal, temas, metas, parcelas e sincronização entre PC e celular.</p>
+
       <button id="btnLogin" class="btn primary">Entrar com Google</button>
-      <p class="login-help">O login abre pela tela oficial do Google. Se voltar com erro, confira domínio autorizado e Google ativado no Firebase.</p>
-      <small>Cada usuário tem os próprios dados. Conta nova começa zerada.</small>
+
+      <div id="loginError" class="login-error hidden"></div>
+
+      <div class="login-tips">
+        <strong>Primeiro acesso?</strong>
+        <span>Sua conta começa zerada. Cada usuário vê só os próprios dados.</span>
+      </div>
     </section>
   </main>
 
@@ -30,7 +36,7 @@
         <div class="avatar-letter" id="avatarLetter">M</div>
         <div>
           <h1 id="brandName">Finanças</h1>
-          <p>Dashboard premium</p>
+          <p>V8 limpa</p>
         </div>
       </div>
 
@@ -44,16 +50,16 @@
 
       <nav>
         <button class="nav active" data-page="dashboard">🏠 Dashboard</button>
-        <button class="nav" data-page="setup">🧙 Início rápido</button>
-        <button class="nav" data-page="como-usar">📘 Como usar</button>
-        <button class="nav" data-page="mes">📅 Mês atual</button>
-        <button class="nav" data-page="fixas">🔁 Fixas base</button>
+        <button class="nav" data-page="inicio">🧙 Início rápido</button>
+        <button class="nav" data-page="guia">📘 Como usar</button>
+        <button class="nav" data-page="mes">📅 Mês</button>
+        <button class="nav" data-page="fixas">🔁 Fixas</button>
         <button class="nav" data-page="gastos">💸 Gastos</button>
-        <button class="nav" data-page="receitas">💰 Receitas extras</button>
+        <button class="nav" data-page="receitas">💰 Receitas</button>
         <button class="nav" data-page="parcelas">🧾 Parcelas</button>
         <button class="nav" data-page="cartoes">💳 Cartões</button>
         <button class="nav" data-page="metas">🎯 Metas</button>
-        <button class="nav" data-page="anual">📊 Resumo anual</button>
+        <button class="nav" data-page="anual">📊 Anual</button>
         <button class="nav" data-page="historico">🗂️ Histórico</button>
         <button class="nav" data-page="config">⚙️ Config</button>
       </nav>
@@ -74,15 +80,16 @@
     <section class="content">
       <header class="header">
         <div>
-          <span class="pill">V7 Premium</span>
+          <span class="pill">V8 Completa</span>
           <h2 id="pageTitle">Dashboard</h2>
           <p class="muted" id="currentMonthLabel">Mês atual</p>
         </div>
+
         <div class="header-actions">
           <select id="monthSelect"></select>
           <select id="yearSelect"></select>
-          <button class="btn glass" id="btnGoMonth">Abrir mês</button>
-          <button class="btn primary" data-go="gastos">+ Gasto</button>
+          <button class="btn glass" id="btnOpenMonth">Abrir mês</button>
+          <button class="btn primary" data-open-page="gastos">+ Gasto</button>
         </div>
       </header>
 
@@ -102,249 +109,239 @@
         </div>
 
         <div class="kpis">
-          <article><span>Salário</span><strong id="kpiSalario">R$ 0,00</strong></article>
-          <article><span>Contas</span><strong id="kpiFixos">R$ 0,00</strong></article>
-          <article><span>Gastos</span><strong id="kpiExtras">R$ 0,00</strong></article>
+          <article><span>Entrada</span><strong id="kpiEntrada">R$ 0,00</strong></article>
+          <article><span>Contas</span><strong id="kpiContas">R$ 0,00</strong></article>
+          <article><span>Gastos</span><strong id="kpiGastos">R$ 0,00</strong></article>
           <article><span>Parcelas/cartões</span><strong id="kpiDividas">R$ 0,00</strong></article>
           <article class="purple"><span>Reserva</span><strong id="kpiReserva">R$ 0,00</strong></article>
         </div>
 
-        <div class="quick-actions dashboard-actions">
-          <button class="btn glass" id="quickResetStatus">Resetar status do mês</button>
-          <button class="btn danger" id="quickResetMonth">Resetar mês inteiro</button>
-          <button class="btn glass" id="quickNextMonth">Criar/ir para próximo mês</button>
+        <div class="quick-actions">
+          <button class="btn glass" data-action="reset-status">Resetar status do mês</button>
+          <button class="btn danger" data-action="reset-month">Resetar mês inteiro</button>
+          <button class="btn glass" data-action="next-month">Criar/ir para próximo mês</button>
         </div>
-
 
         <div class="grid">
           <article class="panel">
-            <div class="panel-head"><h3>Contas do mês</h3><span id="contasPagasResumo"></span></div>
-            <div id="dashContas" class="list"></div>
+            <div class="panel-head"><h3>Contas do mês</h3><span id="paidSummary"></span></div>
+            <div id="dashBills" class="list"></div>
           </article>
+
           <article class="panel">
             <div class="panel-head"><h3>Gastos por categoria</h3><span>Mês selecionado</span></div>
-            <canvas id="chartCategorias"></canvas>
+            <canvas id="chartCategories"></canvas>
           </article>
+
           <article class="panel">
-            <div class="panel-head"><h3>Distribuição</h3><span>Salário</span></div>
-            <canvas id="chartDistribuicao"></canvas>
+            <div class="panel-head"><h3>Distribuição</h3><span>Entrada x saída</span></div>
+            <canvas id="chartDistribution"></canvas>
           </article>
+
           <article class="panel">
-            <div class="panel-head"><h3>Alertas inteligentes</h3><span>Automático</span></div>
-            <div id="alertas"></div>
+            <div class="panel-head"><h3>Alertas</h3><span>Automático</span></div>
+            <div id="alerts"></div>
           </article>
+
           <article class="panel full">
-            <div class="panel-head"><h3>Metas principais</h3><span>Progresso geral</span></div>
-            <div id="dashMetas" class="goals"></div>
+            <div class="panel-head"><h3>Metas principais</h3><span>Progresso</span></div>
+            <div id="dashGoals" class="goals"></div>
           </article>
         </div>
       </section>
 
-      <section class="page" id="setup">
+      <section class="page" id="inicio">
         <article class="panel full">
-          <div class="panel-head"><h3>Início rápido</h3><span>Configure em 2 minutos</span></div>
-          <div class="setup-grid">
-            <div>
-              <label>Salário líquido padrão</label>
-              <input id="setupSalario" type="number" step="0.01" placeholder="Ex: 3062" />
-            </div>
-            <div>
-              <label>Dia de pagamento</label>
-              <input id="setupDiaPagamento" type="number" placeholder="Ex: 5" />
-            </div>
-            <div>
-              <label>Meta de reserva</label>
-              <input id="setupReserva" type="number" step="0.01" placeholder="Ex: 7500" />
-            </div>
-            <div>
-              <label>Meta faculdade</label>
-              <input id="setupFaculdade" type="number" step="0.01" placeholder="Ex: 10000" />
-            </div>
+          <div class="panel-head"><h3>Início rápido</h3><span>Configure sua conta</span></div>
+          <div class="form four">
+            <input id="setupSalary" type="number" step="0.01" placeholder="Salário líquido padrão" />
+            <input id="setupReserve" type="number" step="0.01" placeholder="Meta reserva" />
+            <input id="setupCollege" type="number" step="0.01" placeholder="Meta faculdade" />
+            <button class="btn primary" data-action="apply-setup">Aplicar</button>
           </div>
           <div class="quick-actions">
-            <button class="btn primary" id="btnSetupApply">Aplicar configuração inicial</button>
-            <button class="btn glass" id="btnSetupDemo">Preencher exemplo Maycon</button>
+            <button class="btn glass" data-action="demo-maycon">Preencher exemplo Maycon</button>
           </div>
-          <p class="muted">Depois você pode editar tudo nas abas específicas.</p>
+          <p class="muted">Essa tela só acelera o cadastro. Depois você pode editar tudo manualmente.</p>
         </article>
       </section>
 
-      <section class="page" id="como-usar">
+      <section class="page" id="guia">
         <article class="panel full">
-          <div class="panel-head"><h3>Como registrar suas finanças</h3><span>Guia dentro do app</span></div>
+          <div class="panel-head"><h3>Como usar</h3><span>Passo a passo</span></div>
           <div class="instructions">
-            <div><strong>1. Escolha mês e ano</strong><p>No topo, selecione o mês/ano. Cada mês tem status e gastos próprios.</p></div>
-            <div><strong>2. Fixas base</strong><p>Cadastre aluguel, luz, internet e contas recorrentes. Elas servem de modelo para meses novos.</p></div>
-            <div><strong>3. Contas do mês</strong><p>Marque cada conta como Pago, Pendente ou Atrasado. O status não afeta outros meses.</p></div>
-            <div><strong>4. Gastos extras</strong><p>Lance lanches, Uber, compras e imprevistos. Eles ficam vinculados ao mês selecionado.</p></div>
-            <div><strong>5. Receitas extras</strong><p>Registre edição, parceria ou comissão sem depender disso no salário fixo.</p></div>
-            <div><strong>6. Parcelas</strong><p>Cadastre compras parceladas com início e quantidade. O app calcula em quais meses entra.</p></div>
-            <div><strong>7. Cartões</strong><p>Cadastre cartões e compras. O app soma a fatura do mês.</p></div>
-            <div><strong>8. Reset mensal</strong><p>Resete status ou mês inteiro sem apagar histórico de outros meses.</p></div>
+            <div><strong>1. Escolha mês e ano</strong><p>No topo você troca o mês. Cada mês tem os próprios gastos e status.</p></div>
+            <div><strong>2. Cadastre fixas</strong><p>Aluguel, internet, luz e contas recorrentes entram em Fixas. Mês novo copia essas contas como Pendente.</p></div>
+            <div><strong>3. Marque o que pagou</strong><p>Na tela Mês, mude cada conta para Pago, Pendente ou Atrasado.</p></div>
+            <div><strong>4. Lance gastos</strong><p>Gastos extras ficam presos ao mês selecionado.</p></div>
+            <div><strong>5. Receitas extras</strong><p>Edição, parceria, comissão e valores fora do salário entram em Receitas.</p></div>
+            <div><strong>6. Parcelas e cartões</strong><p>O app calcula as parcelas e faturas que entram naquele mês.</p></div>
+            <div><strong>7. Reset seguro</strong><p>Resetar status muda só os status. Resetar mês apaga gastos/receitas do mês e recria as fixas.</p></div>
+            <div><strong>8. Histórico</strong><p>Você pode voltar em qualquer mês e ver como estava.</p></div>
           </div>
         </article>
       </section>
 
       <section class="page" id="mes">
         <article class="panel">
-          <div class="panel-head"><h3>Conta manual neste mês</h3><span>Não altera a base fixa</span></div>
-          <div class="form">
-            <input id="contaNome" placeholder="Nome" />
-            <input id="contaValor" type="number" step="0.01" placeholder="Valor" />
-            <input id="contaDia" type="number" placeholder="Vence dia" />
-            <select id="contaStatus"><option>Pendente</option><option>Pago</option><option>Atrasado</option></select>
-            <button class="btn primary" id="addConta">Adicionar</button>
+          <div class="panel-head"><h3>Nova conta neste mês</h3><span>Não altera fixas</span></div>
+          <div class="form five">
+            <input id="billName" placeholder="Nome" />
+            <input id="billValue" type="number" step="0.01" placeholder="Valor" />
+            <input id="billDay" type="number" placeholder="Dia" />
+            <select id="billStatus"><option>Pendente</option><option>Pago</option><option>Atrasado</option></select>
+            <button class="btn primary" data-action="add-bill">Adicionar</button>
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h3>Contas do mês selecionado</h3><span>Status independente por mês</span></div>
-          <div id="listaContas" class="list"></div>
+          <div class="panel-head"><h3>Contas do mês</h3><span>Status independente</span></div>
+          <div id="monthBills" class="list"></div>
         </article>
       </section>
 
       <section class="page" id="fixas">
         <article class="panel">
-          <div class="panel-head"><h3>Nova conta fixa base</h3><span>Modelo para meses novos</span></div>
-          <div class="form">
-            <input id="fixaNome" placeholder="Nome" />
-            <input id="fixaValor" type="number" step="0.01" placeholder="Valor" />
-            <input id="fixaDia" type="number" placeholder="Vence dia" />
-            <button class="btn primary" id="addFixa">Adicionar fixa</button>
+          <div class="panel-head"><h3>Nova fixa</h3><span>Modelo para meses novos</span></div>
+          <div class="form four">
+            <input id="baseName" placeholder="Nome" />
+            <input id="baseValue" type="number" step="0.01" placeholder="Valor" />
+            <input id="baseDay" type="number" placeholder="Dia" />
+            <button class="btn primary" data-action="add-base">Adicionar fixa</button>
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h3>Fixas base</h3><span>Usadas para criar novos meses</span></div>
-          <div id="listaFixas" class="list"></div>
+          <div class="panel-head"><h3>Fixas cadastradas</h3><span>Base mensal</span></div>
+          <div id="baseBills" class="list"></div>
         </article>
       </section>
 
       <section class="page" id="gastos">
         <article class="panel">
-          <div class="panel-head"><h3>Novo gasto extra</h3><span>Vinculado ao mês selecionado</span></div>
-          <div class="form">
-            <input id="gastoDesc" placeholder="Descrição" />
-            <input id="gastoValor" type="number" step="0.01" placeholder="Valor" />
-            <select id="gastoCat">
+          <div class="panel-head"><h3>Novo gasto</h3><span>Mês selecionado</span></div>
+          <div class="form four">
+            <input id="expenseDesc" placeholder="Descrição" />
+            <input id="expenseValue" type="number" step="0.01" placeholder="Valor" />
+            <select id="expenseCat">
               <option>Alimentação</option><option>Transporte</option><option>Lazer</option><option>Tecnologia</option><option>Casa</option><option>Faculdade</option><option>Outros</option>
             </select>
-            <button class="btn primary" id="addGasto">Adicionar</button>
+            <button class="btn primary" data-action="add-expense">Adicionar</button>
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h3>Gastos extras do mês</h3><span id="totalGastos"></span></div>
-          <div id="listaGastos" class="list"></div>
+          <div class="panel-head"><h3>Gastos do mês</h3><span id="expensesTotal"></span></div>
+          <div id="expensesList" class="list"></div>
         </article>
       </section>
 
       <section class="page" id="receitas">
         <article class="panel">
-          <div class="panel-head"><h3>Nova receita extra</h3><span>Opcional e separada do salário</span></div>
-          <div class="form">
-            <input id="receitaDesc" placeholder="Descrição" />
-            <input id="receitaValor" type="number" step="0.01" placeholder="Valor" />
-            <select id="receitaCat">
+          <div class="panel-head"><h3>Nova receita extra</h3><span>Além do salário</span></div>
+          <div class="form four">
+            <input id="incomeDesc" placeholder="Descrição" />
+            <input id="incomeValue" type="number" step="0.01" placeholder="Valor" />
+            <select id="incomeCat">
               <option>Edição</option><option>Parceria</option><option>Comissão</option><option>Presente</option><option>Outros</option>
             </select>
-            <button class="btn primary" id="addReceita">Adicionar</button>
+            <button class="btn primary" data-action="add-income">Adicionar</button>
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h3>Receitas extras do mês</h3><span id="totalReceitas"></span></div>
-          <div id="listaReceitas" class="list"></div>
+          <div class="panel-head"><h3>Receitas extras</h3><span id="incomesTotal"></span></div>
+          <div id="incomesList" class="list"></div>
         </article>
       </section>
 
       <section class="page" id="parcelas">
         <article class="panel">
-          <div class="panel-head"><h3>Novo parcelamento</h3><span>Automático por mês</span></div>
-          <div class="form">
-            <input id="parcelaNome" placeholder="Nome" />
-            <input id="parcelaValor" type="number" step="0.01" placeholder="Valor parcela" />
-            <input id="parcelaTotal" type="number" placeholder="Total parcelas" />
-            <input id="parcelaInicio" type="month" />
-            <button class="btn primary" id="addParcela">Adicionar</button>
+          <div class="panel-head"><h3>Nova parcela</h3><span>Automática por mês</span></div>
+          <div class="form five">
+            <input id="installName" placeholder="Nome" />
+            <input id="installValue" type="number" step="0.01" placeholder="Valor parcela" />
+            <input id="installTotal" type="number" placeholder="Total parcelas" />
+            <input id="installStart" type="month" />
+            <button class="btn primary" data-action="add-installment">Adicionar</button>
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h3>Parcelamentos</h3><span id="totalParcelas"></span></div>
-          <div id="listaParcelas" class="list"></div>
+          <div class="panel-head"><h3>Parcelamentos</h3><span id="installmentsTotal"></span></div>
+          <div id="installmentsList" class="list"></div>
         </article>
       </section>
 
       <section class="page" id="cartoes">
         <article class="panel">
-          <div class="panel-head"><h3>Novo cartão</h3><span>Controle limite e fatura</span></div>
-          <div class="form">
-            <input id="cardNome" placeholder="Nome do cartão" />
-            <input id="cardLimite" type="number" step="0.01" placeholder="Limite" />
-            <input id="cardVencimento" type="number" placeholder="Vence dia" />
-            <button class="btn primary" id="addCard">Adicionar cartão</button>
+          <div class="panel-head"><h3>Novo cartão</h3><span>Limite e vencimento</span></div>
+          <div class="form four">
+            <input id="cardName" placeholder="Nome" />
+            <input id="cardLimit" type="number" step="0.01" placeholder="Limite" />
+            <input id="cardDue" type="number" placeholder="Vence dia" />
+            <button class="btn primary" data-action="add-card">Adicionar</button>
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h3>Nova compra no cartão</h3><span>Vai para fatura do mês</span></div>
-          <div class="form">
-            <select id="cardCompraId"></select>
-            <input id="cardCompraDesc" placeholder="Descrição" />
-            <input id="cardCompraValor" type="number" step="0.01" placeholder="Valor" />
-            <input id="cardCompraParcelas" type="number" placeholder="Parcelas" />
-            <button class="btn primary" id="addCardCompra">Adicionar compra</button>
+          <div class="panel-head"><h3>Nova compra</h3><span>Fatura do mês</span></div>
+          <div class="form five">
+            <select id="purchaseCard"></select>
+            <input id="purchaseDesc" placeholder="Descrição" />
+            <input id="purchaseValue" type="number" step="0.01" placeholder="Valor total" />
+            <input id="purchaseInstallments" type="number" placeholder="Parcelas" />
+            <button class="btn primary" data-action="add-purchase">Adicionar</button>
           </div>
         </article>
         <article class="panel full">
-          <div class="panel-head"><h3>Cartões e faturas</h3><span id="totalCartoes"></span></div>
-          <div id="listaCartoes" class="list"></div>
+          <div class="panel-head"><h3>Cartões e compras</h3><span id="cardsTotal"></span></div>
+          <div id="cardsList" class="list"></div>
         </article>
       </section>
 
       <section class="page" id="metas">
         <article class="panel">
-          <div class="panel-head"><h3>Nova meta</h3><span>Reserva, faculdade, projetos</span></div>
-          <div class="form">
-            <input id="metaNome" placeholder="Nome" />
-            <input id="metaAtual" type="number" step="0.01" placeholder="Atual" />
-            <input id="metaObjetivo" type="number" step="0.01" placeholder="Objetivo" />
-            <button class="btn primary" id="addMeta">Adicionar</button>
+          <div class="panel-head"><h3>Nova meta</h3><span>Reserva, faculdade, projeto</span></div>
+          <div class="form four">
+            <input id="goalName" placeholder="Nome" />
+            <input id="goalCurrent" type="number" step="0.01" placeholder="Atual" />
+            <input id="goalTarget" type="number" step="0.01" placeholder="Objetivo" />
+            <button class="btn primary" data-action="add-goal">Adicionar</button>
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h3>Minhas metas</h3><span>Atualize o valor guardado</span></div>
-          <div id="listaMetas" class="goals"></div>
+          <div class="panel-head"><h3>Metas</h3><span>Atualize o progresso</span></div>
+          <div id="goalsList" class="goals"></div>
         </article>
       </section>
 
       <section class="page" id="anual">
         <article class="panel full">
-          <div class="panel-head"><h3>Resumo anual</h3><span id="anoResumoLabel"></span></div>
+          <div class="panel-head"><h3>Resumo anual</h3><span id="annualLabel"></span></div>
           <div class="kpis">
-            <article><span>Receitas ano</span><strong id="anoReceitas">R$ 0,00</strong></article>
-            <article><span>Gastos ano</span><strong id="anoGastos">R$ 0,00</strong></article>
-            <article><span>Melhor mês</span><strong id="anoMelhor">-</strong></article>
-            <article><span>Pior mês</span><strong id="anoPior">-</strong></article>
-            <article class="purple"><span>Saldo ano</span><strong id="anoSaldo">R$ 0,00</strong></article>
+            <article><span>Entrada ano</span><strong id="annualIn">R$ 0,00</strong></article>
+            <article><span>Saída ano</span><strong id="annualOut">R$ 0,00</strong></article>
+            <article><span>Melhor mês</span><strong id="annualBest">-</strong></article>
+            <article><span>Pior mês</span><strong id="annualWorst">-</strong></article>
+            <article class="purple"><span>Saldo ano</span><strong id="annualBalance">R$ 0,00</strong></article>
           </div>
-          <canvas id="chartAnual"></canvas>
+          <canvas id="chartAnnual"></canvas>
         </article>
       </section>
 
       <section class="page" id="historico">
         <article class="panel full">
-          <div class="panel-head"><h3>Histórico mensal</h3><span>Cada mês salvo separado</span></div>
-          <div id="listaHistorico" class="history"></div>
+          <div class="panel-head"><h3>Histórico</h3><span>Meses salvos</span></div>
+          <div id="historyList" class="history"></div>
         </article>
       </section>
 
       <section class="page" id="config">
-        <article class="panel">
-          <div class="panel-head"><h3>Configuração</h3><span>Visual, backup e conta</span></div>
+        <article class="panel full">
+          <div class="panel-head"><h3>Configurações</h3><span>Visual, backup e conta</span></div>
 
           <div class="config-grid">
             <div>
               <label>Salário líquido padrão</label>
-              <input id="salarioInput" type="number" step="0.01" placeholder="Salário líquido padrão" />
+              <input id="configSalary" type="number" step="0.01" placeholder="Salário líquido" />
             </div>
             <div>
-              <label>Tema do app</label>
+              <label>Tema</label>
               <select id="themeSelect">
                 <option value="purple">Roxo padrão</option>
                 <option value="dark">Escuro clean</option>
@@ -353,48 +350,35 @@
                 <option value="light">Claro</option>
               </select>
             </div>
-            <div class="config-actions-inline">
-              <button class="btn primary" id="saveSalario">Salvar salário</button>
-              <button class="btn glass" id="saveTheme">Aplicar tema</button>
+            <div class="config-actions">
+              <button class="btn primary" data-action="save-config">Salvar config</button>
             </div>
           </div>
 
           <div class="settings-block">
             <h3>Backup</h3>
-            <div class="backup-actions">
-              <button class="btn glass" id="exportar">Exportar backup</button>
-              <label class="btn glass">Importar backup <input id="importar" type="file" accept="application/json" hidden /></label>
+            <div class="quick-actions">
+              <button class="btn glass" data-action="export">Exportar backup</button>
+              <label class="btn glass">Importar backup <input id="importBackup" type="file" accept="application/json" hidden /></label>
             </div>
           </div>
 
-          <div class="settings-block advanced">
+          <div class="settings-block">
             <h3>Ações avançadas</h3>
-            <p class="muted">Use só quando realmente precisar. Essas opções ficam fora da tela principal para não atrapalhar o uso diário.</p>
-            <div class="backup-actions">
-              <button class="btn glass" id="btnResetStatus">Resetar status do mês</button>
-              <button class="btn danger" id="btnResetMonth">Resetar mês inteiro</button>
-              <button class="btn glass" id="btnNextMonth">Criar/ir para próximo mês</button>
-              <button class="btn danger" id="resetar">Resetar conta completa</button>
-              <button class="btn glass" id="btnLogout">Sair da conta</button>
+            <p class="muted">Use com cuidado.</p>
+            <div class="quick-actions">
+              <button class="btn glass" data-action="reset-status">Resetar status do mês</button>
+              <button class="btn danger" data-action="reset-month">Resetar mês inteiro</button>
+              <button class="btn danger" data-action="reset-account">Resetar conta completa</button>
+              <button class="btn glass" data-action="logout">Sair da conta</button>
             </div>
           </div>
 
-          <p class="muted" id="lastSyncLabel">Aguardando sincronização...</p>
+          <p class="muted" id="syncLabel">Aguardando sincronização...</p>
         </article>
       </section>
     </section>
   </div>
-
-  <dialog id="editDialog">
-    <form method="dialog" class="modal">
-      <h3 id="editTitle">Editar</h3>
-      <div id="editFields" class="modal-fields"></div>
-      <div class="modal-actions">
-        <button class="btn glass" value="cancel">Cancelar</button>
-        <button class="btn primary" id="btnEditSave" value="default">Salvar</button>
-      </div>
-    </form>
-  </dialog>
 
   <script type="module" src="app.js"></script>
 </body>
