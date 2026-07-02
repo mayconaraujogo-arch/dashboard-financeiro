@@ -1,14 +1,25 @@
-# Finanças Cloud V7.3 — Botões funcionando
+# Finanças Cloud V7.4 — Login corrigido
 
-Correções:
-- Botões da tela principal mantidos e corrigidos:
-  - Resetar status do mês
-  - Resetar mês inteiro
-  - Criar/ir para próximo mês
-- Os mesmos botões também ficam em Configurações > Ações avançadas.
-- Corrigido erro de JavaScript que fazia clique não fazer nada.
-- Mantém troca de tema.
-- Mantém interface responsiva.
+Correção principal:
+- O login Google agora usa redirect direto, sem pop-up.
+- Isso evita o bug de clicar e só piscar.
+- Mostra mensagens claras se:
+  - Google não estiver ativado no Firebase.
+  - Domínio do GitHub Pages não estiver autorizado.
+  - Firebase config estiver incompleto.
 
-## Recomendação
-Teste em um repositório separado antes de substituir o app principal.
+Mantém:
+- Botões funcionando
+- Troca de tema
+- Interface responsiva
+- Histórico mensal
+- Gastos, receitas, parcelas, cartões, metas e resumo anual
+
+## Depois de subir
+1. Preencha firebase-config.js com suas chaves.
+2. Firebase > Authentication > Sign-in method > Google: ativado.
+3. Firebase > Authentication > Settings > Authorized domains:
+   adicione seu domínio GitHub Pages, exemplo:
+   mayconaraujogo-arch.github.io
+4. GitHub Pages: aguarde atualizar.
+5. Abra o site e aperte Ctrl + F5.

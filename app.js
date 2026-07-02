@@ -1,7 +1,7 @@
 import { firebaseConfig } from './firebase-config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import { getFirestore, doc, setDoc, onSnapshot, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 
 const money = v => (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const uid = () => crypto.randomUUID();
@@ -56,14 +56,51 @@ function ensureMonth(y=selectedYear,m=selectedMonth){
 function currentMonthData(){ return ensureMonth(); }
 
 async function loginGoogle(){
-  try{ await signInWithPopup(auth, provider); }
-  catch(err){ console.warn('Popup falhou, tentando redirect:', err); await signInWithRedirect(auth, provider); }
+  try{
+    if(!firebaseConfigured){
+      alert('Firebase não configurado. Preencha o firebase-config.js com suas chaves.');
+      return;
+    }
+    topStatus.textContent = '🔄 Abrindo login do Google...';
+    btnLogin.disabled = true;
+    btnLogin.textContent = 'Abrindo Google...';
+    await signInWithRedirect(auth, provider);
+  }catch(err){
+    console.error('Erro no login Google:', err);
+    btnLogin.disabled = false;
+    btnLogin.textContent = 'Entrar com Google';
+    if(err.code === 'auth/unauthorized-domain'){
+      alert('Domínio não autorizado no Firebase. Adicione seu domínio do GitHub Pages em Authentication > Settings > Authorized domains.');
+    }else if(err.code === 'auth/operation-not-allowed'){
+      alert('Login Google não está ativado. Ative em Firebase > Authentication > Sign-in method > Google.');
+    }else{
+      alert('Erro ao abrir login Google: ' + (err.code || err.message || err));
+    }
+    topStatus.textContent = '⚠️ Erro ao abrir login Google. Veja o alerta ou o Console.';
+  }
 }
 btnLogin.onclick=loginGoogle;
 btnLogout.onclick=()=>signOut(auth);
 btnLogoutMobile.onclick=()=>signOut(auth);
 menuToggle.onclick=()=>sidebar.classList.toggle('open');
-getRedirectResult(auth).catch(err=>console.warn('Redirect:',err));
+getRedirectResult(auth)
+  .then((result) => {
+    if(result?.user){
+      topStatus.textContent = '✅ Login Google realizado com sucesso.';
+    }
+  })
+  .catch(err => {
+    console.error('Erro no retorno do login Google:', err);
+    let msg = 'Erro no retorno do login Google.';
+    if(err.code === 'auth/unauthorized-domain'){
+      msg = 'Domínio não autorizado. Firebase > Authentication > Settings > Authorized domains: adicione seu domínio do GitHub Pages.';
+    }
+    if(err.code === 'auth/operation-not-allowed'){
+      msg = 'Login Google não ativado. Firebase > Authentication > Sign-in method > Google.';
+    }
+    topStatus.textContent = '⚠️ ' + msg;
+    alert(msg);
+  });
 
 onAuthStateChanged(auth, async user=>{
   currentUser=user;

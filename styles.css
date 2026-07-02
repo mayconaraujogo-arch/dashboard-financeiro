@@ -28,3 +28,5 @@ body.theme-light select option{background:#fff;color:#18111f}
 .dashboard-actions{margin-top:-4px;margin-bottom:18px}
 .dashboard-actions .btn{min-width:180px}
 @media(max-width:720px){.dashboard-actions{grid-template-columns:1fr}.dashboard-actions .btn{min-width:0;width:100%}}
+
+.login-help{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.45}
