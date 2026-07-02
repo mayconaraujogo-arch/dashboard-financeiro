@@ -10,6 +10,11 @@ const now = new Date();
 let selectedYear = now.getFullYear();
 let selectedMonth = now.getMonth()+1;
 
+const firebaseConfigured = firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== 'COLE_AQUI';
+if(!firebaseConfigured){
+  topStatus.textContent = '⚠️ Firebase não configurado. Preencha firebase-config.js antes de publicar.';
+}
+
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 const auth = getAuth(firebaseApp);
@@ -225,7 +230,9 @@ function renderParcelas(){
 function renderCards(){
   cardCompraId.innerHTML=(state.cards||[]).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
   totalCartoes.textContent=money(cardTotalForMonth());
-  listaCartoes.innerHTML=(state.cards||[]).map(c=>{ const purchases=state.cardPurchases.filter(p=>p.cardId===c.id); const monthTotal=purchases.reduce((s,p)=>s+cardPurchaseValueForMonth(p),0); const usedAll=purchases.reduce((s,p)=>s+Number(p.value||0),0); return `<div class="row"><div><strong>${c.nome}</strong><small>Limite ${money(c.limite)} • vence dia ${c.vencimento}<br>Fatura do mês: ${money(monthTotal)} • comprado total: ${money(usedAll)}</small></div><span class="badge">${money((c.limite||0)-usedAll)} livre</span><button class="icon" onclick="delGlobal('cards','${c.id}')">Excluir</button><span></span></div>`; }).join('') + (state.cardPurchases||[]).map(p=>`<div class="row"><div><strong>${p.desc}</strong><small>Compra cartão • ${money(p.value)} em ${p.installments}x • mês inicial ${p.monthKey}</small></div><span class="badge">${money(cardPurchaseValueForMonth(p))} este mês</span><button class="icon" onclick="delCardPurchase('${p.id}')">Excluir</button><span></span></div>`).join('') || '<p class="muted">Nenhum cartão cadastrado.</p>';
+  const cardsHtml = (state.cards||[]).map(c=>{ const purchases=state.cardPurchases.filter(p=>p.cardId===c.id); const monthTotal=purchases.reduce((s,p)=>s+cardPurchaseValueForMonth(p),0); const usedAll=purchases.reduce((s,p)=>s+Number(p.value||0),0); return `<div class="row"><div><strong>${c.nome}</strong><small>Limite ${money(c.limite)} • vence dia ${c.vencimento}<br>Fatura do mês: ${money(monthTotal)} • comprado total: ${money(usedAll)}</small></div><span class="badge">${money((c.limite||0)-usedAll)} livre</span><button class="icon" onclick="delGlobal('cards','${c.id}')">Excluir</button><span></span></div>`; }).join('');
+  const purchasesHtml = (state.cardPurchases||[]).map(p=>`<div class="row"><div><strong>${p.desc}</strong><small>Compra cartão • ${money(p.value)} em ${p.installments}x • mês inicial ${p.monthKey}</small></div><span class="badge">${money(cardPurchaseValueForMonth(p))} este mês</span><button class="icon" onclick="delCardPurchase('${p.id}')">Excluir</button><span></span></div>`).join('');
+  listaCartoes.innerHTML = (cardsHtml + purchasesHtml) || '<p class="muted">Nenhum cartão cadastrado.</p>';
 }
 function goalCard(g){ const pct=g.objetivo?Math.min(100,Math.round((g.atual/g.objetivo)*100)):0; return `<div class="goal"><div class="goal-top"><strong>${g.nome}</strong><span>${pct}%</span></div><div class="bar"><div style="width:${pct}%"></div></div><div class="goal-foot"><span>${money(g.atual)}</span><span>${money(g.objetivo)}</span></div><div class="goal-edit"><input id="goal-${g.id}" type="number" step="0.01" placeholder="Novo valor atual"><button class="btn glass" onclick="updateGoal('${g.id}')">Atualizar</button><button class="btn danger" onclick="delGlobal('goals','${g.id}')">Excluir</button></div></div>`; }
 function renderMetas(){ listaMetas.innerHTML=state.goals.map(goalCard).join('')||'<p class="muted">Nenhuma meta cadastrada.</p>'; dashMetas.innerHTML=state.goals.slice(0,3).map(goalCard).join('')||'<p class="muted">Adicione metas.</p>'; }
