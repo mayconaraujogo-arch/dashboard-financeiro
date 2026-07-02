@@ -1,0 +1,9 @@
+{
+  "name": "Finanças Maycon",
+  "short_name": "Finanças",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0A0610",
+  "theme_color": "#820AD1",
+  "icons": []
+}
