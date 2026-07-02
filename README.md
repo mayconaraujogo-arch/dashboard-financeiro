@@ -1,33 +1,34 @@
-# Finanças Cloud V5
+# Finanças Cloud V7 Premium
 
-Versão completa com:
+Versão 10/10 mais completa.
+
+## Recursos
 - Login Google
-- Primeiro nome dinâmico
-- Cada usuário com seus próprios dados
-- Usuário novo começa zerado
-- Firestore com regras por UID
-- Dashboard financeiro responsivo
+- Nome dinâmico por usuário
+- Conta nova começa zerada
+- Dados separados por UID
+- Controle por mês e ano
+- Histórico mensal
+- Contas fixas base
+- Contas do mês com status independente
+- Reset de status do mês
+- Reset do mês inteiro
+- Reset da conta completa
+- Gastos extras por mês
+- Receitas extras por mês
+- Parcelamentos automáticos por mês
+- Cartões e compras parceladas
+- Metas
+- Resumo anual
+- Gráficos
+- Backup e importação
+- Edição de itens
+- Instruções dentro do app
 
-## Arquivos do projeto
-- index.html
-- styles.css
-- app.js
-- firebase-config.js
-- firestore-rules.txt
-- manifest.json
-- favicon.svg
-- README.md
-
-## Como instalar no GitHub Pages
+## Como atualizar
 1. Extraia o ZIP.
-2. No GitHub, apague/substitua todos os arquivos antigos.
-3. Suba TODOS os arquivos desta pasta.
-4. Edite o arquivo firebase-config.js com as chaves do seu Firebase.
-5. Ative Authentication > Google no Firebase.
-6. Em Firestore > Regras, cole o conteúdo de firestore-rules.txt.
-7. Aguarde o GitHub Pages atualizar.
-8. Abra o site e pressione Ctrl + F5.
-
-## Regras importantes
-Usuários novos começam com dados zerados.
-Cada usuário acessa apenas o próprio documento: users/{uid}.
+2. Substitua TODOS os arquivos antigos no GitHub.
+3. Preencha firebase-config.js com suas chaves.
+4. Firebase > Authentication > Google: ativar.
+5. Firestore > Regras: cole firestore-rules.txt.
+6. Abra o site e pressione Ctrl + F5.
