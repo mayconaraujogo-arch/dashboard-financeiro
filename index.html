@@ -108,12 +108,12 @@
           <article class="purple"><span>Reserva</span><strong id="kpiReserva">R$ 0,00</strong></article>
         </div>
 
-        <div class="quick-actions">
-          <button class="btn glass" id="btnResetStatus">Resetar status do mês</button>
-          <button class="btn danger" id="btnResetMonth">Resetar mês inteiro</button>
-          <button class="btn glass" id="btnNextMonth">Criar/ir para próximo mês</button>
-          <button class="btn glass" id="btnNotify">Ativar lembretes</button>
+        <div class="quick-actions dashboard-actions">
+          <button class="btn glass" id="quickResetStatus">Resetar status do mês</button>
+          <button class="btn danger" id="quickResetMonth">Resetar mês inteiro</button>
+          <button class="btn glass" id="quickNextMonth">Criar/ir para próximo mês</button>
         </div>
+
 
         <div class="grid">
           <article class="panel">
@@ -335,17 +335,49 @@
 
       <section class="page" id="config">
         <article class="panel">
-          <div class="panel-head"><h3>Configuração</h3><span>Backup, reset e conta</span></div>
-          <div class="form">
-            <input id="salarioInput" type="number" step="0.01" placeholder="Salário líquido padrão" />
-            <button class="btn primary" id="saveSalario">Salvar salário</button>
+          <div class="panel-head"><h3>Configuração</h3><span>Visual, backup e conta</span></div>
+
+          <div class="config-grid">
+            <div>
+              <label>Salário líquido padrão</label>
+              <input id="salarioInput" type="number" step="0.01" placeholder="Salário líquido padrão" />
+            </div>
+            <div>
+              <label>Tema do app</label>
+              <select id="themeSelect">
+                <option value="purple">Roxo padrão</option>
+                <option value="dark">Escuro clean</option>
+                <option value="blue">Azul tech</option>
+                <option value="green">Verde financeiro</option>
+                <option value="light">Claro</option>
+              </select>
+            </div>
+            <div class="config-actions-inline">
+              <button class="btn primary" id="saveSalario">Salvar salário</button>
+              <button class="btn glass" id="saveTheme">Aplicar tema</button>
+            </div>
           </div>
-          <div class="backup-actions">
-            <button class="btn glass" id="exportar">Exportar backup</button>
-            <label class="btn glass">Importar backup <input id="importar" type="file" accept="application/json" hidden /></label>
-            <button class="btn danger" id="resetar">Resetar conta completa</button>
-            <button class="btn glass" id="btnLogout">Sair da conta</button>
+
+          <div class="settings-block">
+            <h3>Backup</h3>
+            <div class="backup-actions">
+              <button class="btn glass" id="exportar">Exportar backup</button>
+              <label class="btn glass">Importar backup <input id="importar" type="file" accept="application/json" hidden /></label>
+            </div>
           </div>
+
+          <div class="settings-block advanced">
+            <h3>Ações avançadas</h3>
+            <p class="muted">Use só quando realmente precisar. Essas opções ficam fora da tela principal para não atrapalhar o uso diário.</p>
+            <div class="backup-actions">
+              <button class="btn glass" id="btnResetStatus">Resetar status do mês</button>
+              <button class="btn danger" id="btnResetMonth">Resetar mês inteiro</button>
+              <button class="btn glass" id="btnNextMonth">Criar/ir para próximo mês</button>
+              <button class="btn danger" id="resetar">Resetar conta completa</button>
+              <button class="btn glass" id="btnLogout">Sair da conta</button>
+            </div>
+          </div>
+
           <p class="muted" id="lastSyncLabel">Aguardando sincronização...</p>
         </article>
       </section>

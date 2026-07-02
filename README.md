@@ -1,26 +1,14 @@
-# Finanças Cloud V7.1 Corrigida
+# Finanças Cloud V7.3 — Botões funcionando
 
 Correções:
-- Corrigido bug que travava os botões e as abas.
-- Corrigido seletor de mês/ano.
-- Corrigido renderização de cartões.
-- Mantém todos os recursos da V7 Premium.
+- Botões da tela principal mantidos e corrigidos:
+  - Resetar status do mês
+  - Resetar mês inteiro
+  - Criar/ir para próximo mês
+- Os mesmos botões também ficam em Configurações > Ações avançadas.
+- Corrigido erro de JavaScript que fazia clique não fazer nada.
+- Mantém troca de tema.
+- Mantém interface responsiva.
 
-## Como testar sem quebrar o antigo
-Recomendado: criar outro repositório no GitHub:
-`dashboard-financeiro-v7`
-
-Assim você mantém o app antigo funcionando e testa essa versão em outro link.
-
-## Arquivos
-Suba TODOS os arquivos desta pasta:
-- index.html
-- styles.css
-- app.js
-- firebase-config.js
-- firestore-rules.txt
-- manifest.json
-- favicon.svg
-- README.md
-
-Depois preencha o firebase-config.js com suas chaves.
+## Recomendação
+Teste em um repositório separado antes de substituir o app principal.

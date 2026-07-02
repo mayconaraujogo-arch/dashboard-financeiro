@@ -42,7 +42,7 @@ function monthsDiff(startKey, targetKey){
 }
 function emptyMonth(y,m){ return { key:monthKey(y,m), year:y, month:m, salario:0, contas:[], gastos:[], receitas:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() }; }
 function emptyState(){
-  return { version:7, settings:{salarioPadrao:0,diaPagamento:5,onboardingDone:false}, baseBills:[], months:{}, installments:[], cards:[], cardPurchases:[], goals:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), lastSync:null };
+  return { version:7, settings:{salarioPadrao:0,diaPagamento:5,onboardingDone:false,theme:'purple'}, baseBills:[], months:{}, installments:[], cards:[], cardPurchases:[], goals:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), lastSync:null };
 }
 function ensureMonth(y=selectedYear,m=selectedMonth){
   const key = monthKey(y,m);
@@ -91,7 +91,7 @@ onAuthStateChanged(auth, async user=>{
 });
 
 function migrateState(data){
-  if(data.version===7) return data;
+  if(data.version===7){ data.settings = data.settings || {}; if(!data.settings.theme) data.settings.theme = 'purple'; return data; }
   const n=emptyState();
   n.settings.salarioPadrao = data.settings?.salarioPadrao || data.base?.salarioPadrao || data.salario || 0;
   n.baseBills = (data.baseBills || data.base?.contasFixas || data.contas || []).map(c=>({id:uid(),nome:c.nome,valor:Number(c.valor||0),dia:Number(c.dia||5)}));
@@ -101,6 +101,14 @@ function migrateState(data){
   Object.values(n.months).forEach(m=>{ if(!m.receitas) m.receitas=[]; });
   return n;
 }
+function applyTheme(theme){
+  const allowed = ['purple','dark','blue','green','light'];
+  const selected = allowed.includes(theme) ? theme : 'purple';
+  document.body.classList.remove('theme-purple','theme-dark','theme-blue','theme-green','theme-light');
+  document.body.classList.add('theme-' + selected);
+  if(themeSelect) themeSelect.value = selected;
+}
+
 async function save(){
   render();
   if(!userRef || !currentUser || applyingCloud) return;
@@ -146,11 +154,60 @@ function setupMonthSelectors(){
   monthSelect.value=selectedMonth; yearSelect.value=selectedYear;
 }
 function openSelectedMonth(){ selectedMonth=Number(monthSelect.value); selectedYear=Number(yearSelect.value); ensureMonth(); save(); }
-btnGoMonth.onclick=openSelectedMonth;
-btnNextMonth.onclick=()=>{ selectedMonth++; if(selectedMonth>12){selectedMonth=1; selectedYear++;} monthSelect.value=selectedMonth; yearSelect.value=selectedYear; ensureMonth(); save(); };
-btnResetStatus.onclick=()=>{ if(confirm('Resetar todos os status deste mês para Pendente?')){ currentMonthData().contas.forEach(c=>c.status='Pendente'); save(); } };
-btnResetMonth.onclick=()=>{ if(confirm('Resetar o mês inteiro? Apaga gastos/receitas extras e recria contas pela base fixa.')){ const key=monthKey(); state.months[key]=emptyMonth(selectedYear,selectedMonth); state.months[key].salario=state.settings.salarioPadrao||0; state.months[key].contas=(state.baseBills||[]).map(f=>({id:uid(),baseId:f.id,nome:f.nome,valor:Number(f.valor||0),dia:Number(f.dia||5),status:'Pendente'})); save(); } };
-btnNotify.onclick=async()=>{ if(!('Notification' in window)) return alert('Seu navegador não suporta notificações.'); const p=await Notification.requestPermission(); alert(p==='granted'?'Lembretes permitidos.':'Permissão negada.'); };
+
+function goNextMonthAction(){
+  selectedMonth++;
+  if(selectedMonth > 12){
+    selectedMonth = 1;
+    selectedYear++;
+  }
+  monthSelect.value = selectedMonth;
+  yearSelect.value = selectedYear;
+  ensureMonth();
+  save();
+}
+
+function resetStatusAction(){
+  if(confirm('Resetar todos os status deste mês para Pendente?')){
+    currentMonthData().contas.forEach(c => c.status = 'Pendente');
+    save();
+  }
+}
+
+function resetMonthAction(){
+  if(confirm('Resetar o mês inteiro? Isso apaga gastos/receitas extras e recria contas pela base fixa.')){
+    const key = monthKey();
+    state.months[key] = emptyMonth(selectedYear, selectedMonth);
+    state.months[key].salario = state.settings.salarioPadrao || 0;
+    state.months[key].contas = (state.baseBills || []).map(f => ({
+      id: uid(),
+      baseId: f.id,
+      nome: f.nome,
+      valor: Number(f.valor || 0),
+      dia: Number(f.dia || 5),
+      status: 'Pendente'
+    }));
+    save();
+  }
+}
+
+function bindClick(id, fn){
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('click', fn);
+}
+
+bindClick('btnGoMonth', openSelectedMonth);
+bindClick('btnNextMonth', goNextMonthAction);
+bindClick('quickNextMonth', goNextMonthAction);
+bindClick('btnResetStatus', resetStatusAction);
+bindClick('quickResetStatus', resetStatusAction);
+bindClick('btnResetMonth', resetMonthAction);
+bindClick('quickResetMonth', resetMonthAction);
+
+
+
+
+
 
 function go(page){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active')); document.getElementById(page).classList.add('active'); document.querySelector(`[data-page="${page}"]`)?.classList.add('active'); pageTitle.textContent=document.querySelector(`[data-page="${page}"]`)?.textContent.replace(/[^\wÀ-ÿ ]/g,'').trim()||'Dashboard'; sidebar.classList.remove('open'); }
 document.querySelectorAll('.nav').forEach(btn=>btn.onclick=()=>go(btn.dataset.page));
@@ -174,6 +231,7 @@ addCard.onclick=()=>{ if(!cardNome.value||!cardLimite.value)return alert('Preenc
 addCardCompra.onclick=()=>{ if(!cardCompraId.value||!cardCompraDesc.value||!cardCompraValor.value)return alert('Preencha cartão, descrição e valor.'); state.cardPurchases.push({id:uid(),cardId:cardCompraId.value,desc:cardCompraDesc.value,value:+cardCompraValor.value,installments:+cardCompraParcelas.value||1,monthKey:monthKey(),createdAt:new Date().toISOString()}); cardCompraDesc.value=cardCompraValor.value=cardCompraParcelas.value=''; save(); };
 addMeta.onclick=()=>{ if(!metaNome.value||!metaObjetivo.value)return alert('Preencha nome e objetivo.'); state.goals.push({id:uid(),nome:metaNome.value,atual:+metaAtual.value||0,objetivo:+metaObjetivo.value}); metaNome.value=metaAtual.value=metaObjetivo.value=''; save(); };
 saveSalario.onclick=()=>{ const v=+salarioInput.value||0; currentMonthData().salario=v; state.settings.salarioPadrao=v; save(); };
+saveTheme.onclick=()=>{ state.settings.theme = themeSelect.value || 'purple'; applyTheme(state.settings.theme); save(); };
 
 window.statusConta=(id,val)=>{ const c=currentMonthData().contas.find(x=>x.id===id); if(c)c.status=val; save(); };
 window.delMonthItem=(type,id)=>{ currentMonthData()[type]=currentMonthData()[type].filter(x=>x.id!==id); save(); };
@@ -268,12 +326,12 @@ function renderAnnual(){
   chartYear=new Chart(chartAnual,{type:'line',data:{labels:monthNames,datasets:[{label:'Sobra',data:values.map(v=>v.sobra),borderColor:'#c084fc',backgroundColor:'rgba(192,132,252,.18)',fill:true,tension:.35}]},options:{plugins:{legend:{labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#fff'},grid:{display:false}},y:{ticks:{color:'#fff'},grid:{color:'rgba(255,255,255,.08)'}}}}});
 }
 function render(){
-  ensureMonth(); const t=totals(); const m=currentMonthData();
+  ensureMonth(); applyTheme(state.settings?.theme || 'purple'); const t=totals(); const m=currentMonthData();
   currentMonthLabel.textContent=`${monthNames[selectedMonth-1]} de ${selectedYear}`; monthSelect.value=selectedMonth; yearSelect.value=selectedYear;
   sidebarSobra.textContent=money(t.sobra); sidebarStatus.textContent=t.sobra>=0?'Dentro do plano':'Mês negativo';
   saldoHero.textContent=money(t.sobra); economiaPct.textContent=t.economia+'%'; ring.style.setProperty('--pct',t.economia+'%'); fraseHero.textContent=t.sobra>=0?'Boa, você ainda tem saldo previsto neste mês.':'Atenção: seus gastos passaram da entrada deste mês.';
   kpiSalario.textContent=money(t.salario); kpiFixos.textContent=money(t.contas); kpiExtras.textContent=money(t.gastos); kpiDividas.textContent=money(t.dividas); kpiReserva.textContent=money(t.reserva);
-  salarioInput.value=m.salario||state.settings.salarioPadrao||0; lastSyncLabel.textContent=state.lastSync?'Última sincronização: '+new Date(state.lastSync).toLocaleString('pt-BR'):'Aguardando sincronização...';
+  salarioInput.value=m.salario||state.settings.salarioPadrao||0; if(themeSelect) themeSelect.value=state.settings?.theme || 'purple'; lastSyncLabel.textContent=state.lastSync?'Última sincronização: '+new Date(state.lastSync).toLocaleString('pt-BR'):'Aguardando sincronização...';
   renderContas(); renderFixas(); renderGastos(); renderReceitas(); renderParcelas(); renderCards(); renderMetas(); renderHistory(); renderAlerts(t); renderCharts(t); renderAnnual();
 }
-setupMonthSelectors(); ensureMonth();
+setupMonthSelectors(); ensureMonth(); applyTheme(state.settings?.theme || 'purple');
