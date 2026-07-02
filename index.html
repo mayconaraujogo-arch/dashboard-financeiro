@@ -3,219 +3,186 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Financeiro | Maycon</title>
-  <meta name="description" content="Dashboard financeiro pessoal com tema roxo, salvo localmente no navegador." />
+  <title>Finanças Maycon | App</title>
+  <meta name="theme-color" content="#820AD1" />
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
+  <div class="mobile-top">
+    <div class="brand-mini"><span>M</span> Finanças</div>
+    <button id="openMenu">☰</button>
+  </div>
+
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="brand-icon">M</div>
+        <div class="logo">M</div>
         <div>
-          <h1>Finanças</h1>
-          <p>Maycon Araujo</p>
+          <h1>Maycon</h1>
+          <p>Dashboard financeiro</p>
         </div>
       </div>
 
-      <nav class="menu">
-        <button class="menu-item active" data-page="dashboard">🏠 Dashboard</button>
-        <button class="menu-item" data-page="contas">💳 Contas</button>
-        <button class="menu-item" data-page="gastos">💸 Gastos</button>
-        <button class="menu-item" data-page="metas">🎯 Metas</button>
-        <button class="menu-item" data-page="backup">☁️ Backup</button>
+      <nav>
+        <button class="nav active" data-page="dashboard">🏠 Dashboard</button>
+        <button class="nav" data-page="contas">💳 Contas</button>
+        <button class="nav" data-page="gastos">💸 Gastos</button>
+        <button class="nav" data-page="parcelas">🧾 Parcelas</button>
+        <button class="nav" data-page="metas">🎯 Metas</button>
+        <button class="nav" data-page="config">⚙️ Config</button>
       </nav>
 
-      <div class="mini-card">
-        <span>Sobra prevista</span>
-        <strong id="sideSobra">R$ 0,00</strong>
-        <small>Atualiza automaticamente</small>
+      <div class="sidebar-card">
+        <small>Sobra prevista</small>
+        <strong id="sidebarSobra">R$ 0,00</strong>
+        <span id="sidebarStatus">Dentro do plano</span>
       </div>
     </aside>
 
-    <main class="content">
-      <header class="topbar">
+    <main class="main">
+      <header class="header">
         <div>
-          <span class="tag">Painel pessoal</span>
+          <small class="pill">Nubank + Power BI style</small>
           <h2 id="pageTitle">Dashboard</h2>
         </div>
-        <div class="top-actions">
-          <button class="btn ghost" id="btnPrint">Exportar PDF</button>
-          <button class="btn primary" data-page-link="gastos">+ Lançar gasto</button>
+        <div class="header-actions">
+          <button class="btn glass" onclick="window.print()">PDF</button>
+          <button class="btn primary" data-go="gastos">+ Gasto</button>
         </div>
       </header>
 
       <section class="page active" id="dashboard">
         <div class="hero">
           <div>
-            <span class="tag">Saldo do mês</span>
-            <h3 id="heroSaldo">R$ 0,00</h3>
-            <p>Baseado no salário, contas fixas e gastos extras.</p>
+            <p>Saldo disponível previsto</p>
+            <h3 id="saldoHero">R$ 0,00</h3>
+            <span id="fraseHero">Controle seu mês sem complicação.</span>
           </div>
-          <div class="hero-progress">
-            <span>Economia</span>
-            <strong id="heroEconomia">0%</strong>
+          <div class="ring" id="ring">
+            <div>
+              <small>Economia</small>
+              <strong id="economiaPct">0%</strong>
+            </div>
           </div>
         </div>
 
-        <div class="kpi-grid">
-          <article class="kpi"><span>Salário líquido</span><strong id="kpiSalario">R$ 0,00</strong></article>
-          <article class="kpi"><span>Contas fixas</span><strong id="kpiContas">R$ 0,00</strong></article>
-          <article class="kpi"><span>Gastos extras</span><strong id="kpiGastos">R$ 0,00</strong></article>
-          <article class="kpi accent"><span>Reserva atual</span><strong id="kpiReserva">R$ 0,00</strong></article>
+        <div class="kpis">
+          <article><span>Salário</span><strong id="kpiSalario">R$ 0,00</strong></article>
+          <article><span>Fixos</span><strong id="kpiFixos">R$ 0,00</strong></article>
+          <article><span>Extras</span><strong id="kpiExtras">R$ 0,00</strong></article>
+          <article><span>Dívidas</span><strong id="kpiDividas">R$ 0,00</strong></article>
+          <article class="purple"><span>Reserva</span><strong id="kpiReserva">R$ 0,00</strong></article>
         </div>
 
-        <div class="dashboard-grid">
+        <div class="grid">
           <article class="panel">
-            <div class="panel-head">
-              <h3>Contas do mês</h3>
-              <span id="resumoContas">0 pagas</span>
-            </div>
-            <div id="dashboardContas" class="list"></div>
+            <div class="panel-head"><h3>Contas próximas</h3><span id="contasPagasResumo"></span></div>
+            <div class="list" id="dashContas"></div>
           </article>
-
           <article class="panel">
-            <div class="panel-head">
-              <h3>Gastos por categoria</h3>
-              <span>mês atual</span>
-            </div>
-            <canvas id="categoriaChart"></canvas>
+            <div class="panel-head"><h3>Gastos por categoria</h3><span>Mês atual</span></div>
+            <canvas id="chartCategorias"></canvas>
           </article>
-
+          <article class="panel">
+            <div class="panel-head"><h3>Distribuição do salário</h3><span>Visão geral</span></div>
+            <canvas id="chartDistribuicao"></canvas>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3>Alertas</h3><span>Automático</span></div>
+            <div class="alerts" id="alertas"></div>
+          </article>
           <article class="panel full">
-            <div class="panel-head">
-              <h3>Metas principais</h3>
-              <span>progresso</span>
-            </div>
-            <div id="dashboardMetas" class="goals"></div>
+            <div class="panel-head"><h3>Metas</h3><span>Progresso</span></div>
+            <div class="goals" id="dashMetas"></div>
           </article>
         </div>
       </section>
 
       <section class="page" id="contas">
         <article class="panel">
-          <div class="panel-head">
-            <h3>Adicionar conta</h3>
-            <span>fixas ou parceladas</span>
-          </div>
-          <div class="form-grid">
-            <input id="contaNome" placeholder="Nome da conta" />
+          <div class="panel-head"><h3>Nova conta</h3><span>fixa ou mensal</span></div>
+          <div class="form">
+            <input id="contaNome" placeholder="Nome" />
             <input id="contaValor" type="number" step="0.01" placeholder="Valor" />
-            <input id="contaVencimento" type="number" placeholder="Dia do vencimento" />
+            <input id="contaDia" type="number" placeholder="Vence dia" />
             <select id="contaStatus">
-              <option value="Pendente">Pendente</option>
-              <option value="Pago">Pago</option>
-              <option value="Atrasado">Atrasado</option>
+              <option>Pendente</option><option>Pago</option><option>Atrasado</option>
             </select>
             <button class="btn primary" id="addConta">Adicionar</button>
           </div>
         </article>
-
         <article class="panel">
-          <div class="panel-head">
-            <h3>Minhas contas</h3>
-            <span>Clique no status para alterar</span>
-          </div>
-          <div id="listaContas" class="list"></div>
+          <div class="panel-head"><h3>Contas cadastradas</h3><span>mude o status em 1 clique</span></div>
+          <div class="list" id="listaContas"></div>
         </article>
       </section>
 
       <section class="page" id="gastos">
         <article class="panel">
-          <div class="panel-head">
-            <h3>Lançar gasto</h3>
-            <span>lazer, mercado, transporte...</span>
-          </div>
-          <div class="form-grid">
-            <input id="gastoDescricao" placeholder="Descrição" />
+          <div class="panel-head"><h3>Novo gasto</h3><span>lazer, mercado, transporte...</span></div>
+          <div class="form">
+            <input id="gastoDesc" placeholder="Descrição" />
             <input id="gastoValor" type="number" step="0.01" placeholder="Valor" />
-            <select id="gastoCategoria">
-              <option>Alimentação</option>
-              <option>Transporte</option>
-              <option>Lazer</option>
-              <option>Tecnologia</option>
-              <option>Casa</option>
-              <option>Faculdade</option>
-              <option>Outros</option>
+            <select id="gastoCat">
+              <option>Alimentação</option><option>Transporte</option><option>Lazer</option>
+              <option>Tecnologia</option><option>Casa</option><option>Faculdade</option><option>Outros</option>
             </select>
             <button class="btn primary" id="addGasto">Adicionar</button>
           </div>
         </article>
-
         <article class="panel">
-          <div class="panel-head">
-            <h3>Gastos recentes</h3>
-            <span id="totalGastosRecentes">R$ 0,00</span>
+          <div class="panel-head"><h3>Gastos lançados</h3><span id="totalGastos"></span></div>
+          <div class="list" id="listaGastos"></div>
+        </article>
+      </section>
+
+      <section class="page" id="parcelas">
+        <article class="panel">
+          <div class="panel-head"><h3>Nova dívida/parcelamento</h3><span>cartão, empréstimo, fone...</span></div>
+          <div class="form">
+            <input id="parcelaNome" placeholder="Nome" />
+            <input id="parcelaValor" type="number" step="0.01" placeholder="Valor da parcela" />
+            <input id="parcelaRestam" type="number" placeholder="Parcelas restantes" />
+            <button class="btn primary" id="addParcela">Adicionar</button>
           </div>
-          <div id="listaGastos" class="list"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h3>Parcelamentos</h3><span id="totalParcelas"></span></div>
+          <div class="list" id="listaParcelas"></div>
         </article>
       </section>
 
       <section class="page" id="metas">
         <article class="panel">
-          <div class="panel-head">
-            <h3>Configurar salário</h3>
-            <span>base do cálculo</span>
-          </div>
-          <div class="form-grid">
-            <input id="salarioInput" type="number" step="0.01" placeholder="Salário líquido" />
-            <button class="btn primary" id="saveSalario">Salvar</button>
-          </div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <h3>Adicionar meta</h3>
-            <span>reserva, faculdade, PC...</span>
-          </div>
-          <div class="form-grid">
-            <input id="metaNome" placeholder="Nome da meta" />
-            <input id="metaAtual" type="number" step="0.01" placeholder="Valor atual" />
+          <div class="panel-head"><h3>Nova meta</h3><span>reserva, faculdade, PC...</span></div>
+          <div class="form">
+            <input id="metaNome" placeholder="Nome" />
+            <input id="metaAtual" type="number" step="0.01" placeholder="Atual" />
             <input id="metaObjetivo" type="number" step="0.01" placeholder="Objetivo" />
             <button class="btn primary" id="addMeta">Adicionar</button>
           </div>
         </article>
-
         <article class="panel">
-          <div class="panel-head">
-            <h3>Minhas metas</h3>
-            <span>atualize quando guardar dinheiro</span>
-          </div>
-          <div id="listaMetas" class="goals"></div>
+          <div class="panel-head"><h3>Minhas metas</h3><span>atualize quando guardar</span></div>
+          <div class="goals" id="listaMetas"></div>
         </article>
       </section>
 
-      <section class="page" id="backup">
+      <section class="page" id="config">
         <article class="panel">
-          <div class="panel-head">
-            <h3>Backup dos dados</h3>
-            <span>segurança</span>
+          <div class="panel-head"><h3>Configuração principal</h3><span>salário e backups</span></div>
+          <div class="form">
+            <input id="salarioInput" type="number" step="0.01" placeholder="Salário líquido" />
+            <button class="btn primary" id="saveSalario">Salvar salário</button>
           </div>
-          <p class="muted">Os dados ficam salvos no navegador do aparelho. Para usar em outro PC/celular, exporte o backup e importe no outro dispositivo.</p>
-          <div class="backup-actions">
-            <button class="btn primary" id="exportBackup">Exportar backup JSON</button>
-            <label class="btn ghost file-label">
-              Importar backup
-              <input id="importBackup" type="file" accept="application/json" hidden />
-            </label>
-            <button class="btn danger" id="resetData">Apagar tudo</button>
+          <div class="backup">
+            <button class="btn glass" id="exportar">Exportar backup</button>
+            <label class="btn glass">Importar backup <input id="importar" type="file" accept="application/json" hidden /></label>
+            <button class="btn danger" id="resetar">Apagar tudo</button>
           </div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <h3>Publicar no GitHub Pages</h3>
-            <span>guia rápido</span>
-          </div>
-          <ol class="steps">
-            <li>Crie um repositório no GitHub chamado <strong>dashboard-financeiro</strong>.</li>
-            <li>Envie os arquivos deste projeto para o repositório.</li>
-            <li>Vá em <strong>Settings → Pages</strong>.</li>
-            <li>Em <strong>Branch</strong>, selecione <strong>main</strong> e pasta <strong>/root</strong>.</li>
-            <li>Acesse o link que o GitHub gerar.</li>
-          </ol>
+          <p class="muted">Os dados ficam salvos no navegador. Para usar em outro celular/PC, exporte e importe o backup.</p>
         </article>
       </section>
     </main>
