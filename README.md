@@ -1,47 +1,23 @@
-# Finanças Cloud V8 — limpa e completa
+# Finanças Cloud V8.1 — Login híbrido completo
 
-Essa versão foi criada do zero, com todos os arquivos completos, para evitar mistura de V6/V7/V7.4.
+Versão completa com todos os arquivos.
 
-## Arquivos
-- index.html
-- styles.css
-- app.js
-- firebase-config.js
-- firestore-rules.txt
-- manifest.json
-- favicon.svg
-- README.md
+Correção principal:
+- Login Google refeito.
+- Agora tenta popup primeiro.
+- Se o navegador bloquear popup, cai para redirect.
+- Usa persistência local do Firebase para manter a conta logada.
+- Mostra erro visível na tela se algo falhar.
 
-## Recursos
-- Login Google por redirect, sem pop-up.
-- Dados separados por usuário em users/{uid}.
-- Usuário novo começa zerado.
-- Controle por mês e ano.
-- Histórico mensal.
-- Contas fixas base.
-- Contas do mês com status Pago/Pendente/Atrasado.
-- Resetar status do mês.
-- Resetar mês inteiro.
-- Gastos extras.
-- Receitas extras.
-- Parcelas automáticas por mês.
-- Cartões e compras parceladas.
-- Metas.
-- Resumo anual.
-- Temas: roxo, escuro, azul, verde e claro.
-- Layout responsivo para PC, tablet e celular.
-- Backup/exportação/importação.
+Checklist obrigatório no Firebase:
+1. Authentication > Sign-in method > Google: ativado.
+2. Authentication > Settings > Authorized domains:
+   - mayconaraujogo-arch.github.io
+   - financas-maycon.firebaseapp.com
+3. Firestore > Rules:
+   cole o conteúdo de firestore-rules.txt.
 
-## Como subir
-1. Extraia o ZIP.
-2. No GitHub, apague/substitua TODOS os arquivos antigos.
-3. Suba todos os arquivos da V8.
-4. Edite firebase-config.js com suas chaves do Firebase.
-5. Firebase Authentication > Sign-in method > Google: ativado.
-6. Firebase Authentication > Settings > Authorized domains: adicione seu domínio GitHub Pages.
-7. Firestore > Regras: cole firestore-rules.txt e publique.
-8. Abra o site e pressione Ctrl + F5.
-
-## Domínio autorizado
-Exemplo:
-mayconaraujogo-arch.github.io
+Depois de subir:
+- Aguarde o GitHub Pages publicar.
+- Abra em aba anônima.
+- Teste o login.

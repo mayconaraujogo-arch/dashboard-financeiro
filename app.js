@@ -1,7 +1,7 @@
 import { firebaseConfig } from './firebase-config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import { getFirestore, doc, setDoc, onSnapshot, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 
 const $ = (id) => document.getElementById(id);
 const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
@@ -46,22 +46,32 @@ function firebaseConfigOk() {
     && firebaseConfig.projectId !== 'COLE_AQUI';
 }
 
-try {
-  if (!firebaseConfigOk()) {
-    setText('topStatus', '⚠️ Firebase não configurado. Preencha firebase-config.js.');
-    showLoginError('Firebase não configurado. Preencha o arquivo firebase-config.js com suas chaves antes de usar o login.');
-  } else {
+async function initFirebase() {
+  try {
+    if (!firebaseConfigOk()) {
+      setText('topStatus', '⚠️ Firebase não configurado. Preencha firebase-config.js.');
+      showLoginError('Firebase não configurado. Preencha o arquivo firebase-config.js com suas chaves antes de usar o login.');
+      return;
+    }
+
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app);
     auth.useDeviceLanguage();
+    await setPersistence(auth, browserLocalPersistence);
+
     provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     firebaseReady = true;
+
+    await handleRedirectResult();
+    listenAuth();
+
+  } catch (err) {
+    console.error('Erro iniciando Firebase:', err);
+    showLoginError('Erro ao iniciar Firebase: ' + (err.code || err.message || err));
+    setText('topStatus', '⚠️ Erro ao iniciar Firebase.');
   }
-} catch (err) {
-  console.error('Erro iniciando Firebase:', err);
-  showLoginError('Erro ao iniciar Firebase: ' + (err.message || err));
 }
 
 function emptyState() {
@@ -247,45 +257,90 @@ function setupMonthSelectors() {
 
 async function loginGoogle() {
   hideLoginError();
+
   if (!firebaseReady || !auth || !provider) {
     showLoginError('Firebase não está pronto. Confira o firebase-config.js.');
     return;
   }
 
+  const btn = $('btnLogin');
+
   try {
-    const btn = $('btnLogin');
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'Abrindo Google...';
     }
+
     setText('topStatus', '🔄 Abrindo login do Google...');
-    await signInWithRedirect(auth, provider);
+
+    // Primeiro tenta popup, que costuma manter a sessão melhor no GitHub Pages.
+    await signInWithPopup(auth, provider);
+
   } catch (err) {
-    console.error('Erro no login:', err);
+    console.warn('Popup falhou:', err);
+
+    const popupErrors = [
+      'auth/popup-blocked',
+      'auth/popup-closed-by-user',
+      'auth/cancelled-popup-request'
+    ];
+
+    if (popupErrors.includes(err.code)) {
+      try {
+        setText('topStatus', '🔄 Popup bloqueado. Redirecionando para o Google...');
+        await signInWithRedirect(auth, provider);
+        return;
+      } catch (redirectErr) {
+        console.error('Redirect também falhou:', redirectErr);
+        showLoginError('Erro no redirect do Google: ' + (redirectErr.code || redirectErr.message || redirectErr));
+      }
+    } else {
+      let msg = 'Erro ao abrir login Google: ' + (err.code || err.message || err);
+      if (err.code === 'auth/unauthorized-domain') msg = 'Domínio não autorizado no Firebase. Adicione o domínio do GitHub Pages em Authentication > Settings > Authorized domains.';
+      if (err.code === 'auth/operation-not-allowed') msg = 'Google não está ativado. Ative em Firebase > Authentication > Sign-in method > Google.';
+      if (err.code === 'auth/network-request-failed') msg = 'Falha de rede no login Google. Tente de novo.';
+      showLoginError(msg);
+    }
+
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Entrar com Google';
+    }
+
+    setText('topStatus', '⚠️ Erro no login Google.');
+  }
+}
+
+async function handleRedirectResult() {
+  if (!auth) return;
+  try {
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
+      hideLoginError();
+      setText('topStatus', '✅ Login Google realizado.');
+    }
+  } catch (err) {
+    console.error('Erro no retorno do Google:', err);
+    let msg = 'Erro no retorno do login Google: ' + (err.code || err.message || err);
+    if (err.code === 'auth/unauthorized-domain') msg = 'Domínio não autorizado no Firebase. Adicione seu domínio GitHub Pages nos domínios autorizados.';
+    if (err.code === 'auth/operation-not-allowed') msg = 'Google não está ativado no Firebase Authentication.';
+    if (err.code === 'auth/network-request-failed') msg = 'Falha de rede no login Google. Tente de novo.';
+    showLoginError(msg);
+    setText('topStatus', '⚠️ Erro no retorno do login Google.');
+  }
+}
+
+function listenAuth() {
+  if (!auth) return;
+
+  onAuthStateChanged(auth, async user => {
+    currentUser = user;
+
     const btn = $('btnLogin');
     if (btn) {
       btn.disabled = false;
       btn.textContent = 'Entrar com Google';
     }
-    let msg = 'Erro ao abrir login Google: ' + (err.code || err.message || err);
-    if (err.code === 'auth/unauthorized-domain') msg = 'Domínio não autorizado no Firebase. Adicione o domínio do GitHub Pages em Authentication > Settings > Authorized domains.';
-    if (err.code === 'auth/operation-not-allowed') msg = 'Google não está ativado. Ative em Firebase > Authentication > Sign-in method > Google.';
-    showLoginError(msg);
-    setText('topStatus', '⚠️ Erro no login Google.');
-  }
-}
-
-if (firebaseReady) {
-  getRedirectResult(auth).catch(err => {
-    console.error('Erro no retorno do Google:', err);
-    let msg = 'Erro no retorno do login Google: ' + (err.code || err.message || err);
-    if (err.code === 'auth/unauthorized-domain') msg = 'Domínio não autorizado no Firebase. Adicione seu domínio GitHub Pages nos domínios autorizados.';
-    if (err.code === 'auth/operation-not-allowed') msg = 'Google não está ativado no Firebase Authentication.';
-    showLoginError(msg);
-  });
-
-  onAuthStateChanged(auth, async user => {
-    currentUser = user;
 
     if (!user) {
       $('loginScreen')?.classList.remove('hidden');
@@ -293,6 +348,8 @@ if (firebaseReady) {
       setText('topStatus', '🔐 Faça login com Google para sincronizar seus dados');
       return;
     }
+
+    hideLoginError();
 
     const firstName = (user.displayName || user.email || 'Usuário').split(' ')[0];
     $('loginScreen')?.classList.add('hidden');
@@ -307,26 +364,32 @@ if (firebaseReady) {
     setText('avatarLetter', (firstName[0] || 'U').toUpperCase());
     if ($('userPhoto')) $('userPhoto').src = user.photoURL || '';
 
-    userRef = doc(db, 'users', user.uid);
-    const snap = await getDoc(userRef);
+    try {
+      userRef = doc(db, 'users', user.uid);
+      const snap = await getDoc(userRef);
 
-    if (!snap.exists()) {
-      state = emptyState();
-      await setDoc(userRef, { owner: user.uid, data: state, updatedAt: state.updatedAt });
+      if (!snap.exists()) {
+        state = emptyState();
+        await setDoc(userRef, { owner: user.uid, data: state, updatedAt: state.updatedAt });
+      }
+
+      if (unsubscribeCloud) unsubscribeCloud();
+      unsubscribeCloud = onSnapshot(userRef, docSnap => {
+        if (!docSnap.exists()) return;
+        applyingCloud = true;
+        state = migrate(docSnap.data().data);
+        ensureMonth();
+        render();
+        applyingCloud = false;
+      }, err => {
+        console.error('Erro Firestore:', err);
+        setText('topStatus', '⚠️ Erro no Firestore. Confira as regras.');
+        showLoginError('Login funcionou, mas o Firestore bloqueou os dados. Confira as regras do Firestore.');
+      });
+    } catch (err) {
+      console.error('Erro carregando dados:', err);
+      showLoginError('Login funcionou, mas houve erro ao carregar seus dados: ' + (err.code || err.message || err));
     }
-
-    if (unsubscribeCloud) unsubscribeCloud();
-    unsubscribeCloud = onSnapshot(userRef, docSnap => {
-      if (!docSnap.exists()) return;
-      applyingCloud = true;
-      state = migrate(docSnap.data().data);
-      ensureMonth();
-      render();
-      applyingCloud = false;
-    }, err => {
-      console.error('Erro Firestore:', err);
-      setText('topStatus', '⚠️ Erro no Firestore. Confira as regras.');
-    });
   });
 }
 
@@ -841,3 +904,4 @@ on('importBackup', 'change', e => importBackup(e.target.files[0]));
 setupMonthSelectors();
 ensureMonth();
 render();
+initFirebase();
