@@ -1,38 +1,33 @@
-# Finanças Maycon V3 Cloud
+# Finanças Cloud V5
 
-Versão com sincronização em nuvem usando Firebase Firestore.
+Versão completa com:
+- Login Google
+- Primeiro nome dinâmico
+- Cada usuário com seus próprios dados
+- Usuário novo começa zerado
+- Firestore com regras por UID
+- Dashboard financeiro responsivo
 
-## O que muda
-- Continua funcionando localmente.
-- Com Firebase configurado, sincroniza PC e celular.
-- Alterou no PC? Aparece no celular.
-- Alterou no celular? Aparece no PC.
-
-## Arquivos
+## Arquivos do projeto
 - index.html
 - styles.css
 - app.js
 - firebase-config.js
-- manifest.json
 - firestore-rules.txt
+- manifest.json
+- favicon.svg
 - README.md
 
-## Como configurar o Firebase
+## Como instalar no GitHub Pages
+1. Extraia o ZIP.
+2. No GitHub, apague/substitua todos os arquivos antigos.
+3. Suba TODOS os arquivos desta pasta.
+4. Edite o arquivo firebase-config.js com as chaves do seu Firebase.
+5. Ative Authentication > Google no Firebase.
+6. Em Firestore > Regras, cole o conteúdo de firestore-rules.txt.
+7. Aguarde o GitHub Pages atualizar.
+8. Abra o site e pressione Ctrl + F5.
 
-1. Acesse https://console.firebase.google.com/
-2. Clique em Criar projeto.
-3. Crie um projeto chamado `financas-maycon`.
-4. Dentro do projeto, vá em Firestore Database.
-5. Clique em Criar banco de dados.
-6. Escolha modo teste.
-7. Vá em Project settings > Your apps.
-8. Clique em Web app.
-9. Copie o objeto `firebaseConfig`.
-10. Abra o arquivo `firebase-config.js`.
-11. Cole os dados no lugar de COLE_AQUI.
-12. Suba todos os arquivos no GitHub por cima dos atuais.
-
-## Regras do Firestore
-Para funcionar rápido, use as regras do arquivo `firestore-rules.txt`.
-
-Atenção: essas regras são abertas. Para uso pessoal básico, funciona. Depois dá para proteger com login.
+## Regras importantes
+Usuários novos começam com dados zerados.
+Cada usuário acessa apenas o próprio documento: users/{uid}.

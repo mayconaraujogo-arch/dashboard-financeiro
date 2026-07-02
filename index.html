@@ -3,27 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Finanças Maycon Cloud</title>
+  <title>Finanças Cloud V5</title>
   <meta name="theme-color" content="#820AD1" />
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="cloud-banner" id="cloudBanner">☁️ Modo local — configure o Firebase para sincronizar PC e celular</div>
+  <div class="top-status" id="topStatus">🔐 Login Google + dados separados por usuário</div>
 
-  <div class="mobile-top">
-    <div class="brand-mini"><span>M</span> Finanças</div>
-    <button id="openMenu">☰</button>
-  </div>
+  <main id="loginScreen" class="login-screen">
+    <section class="login-card">
+      <div class="login-logo">💜</div>
+      <h1>Finanças Cloud</h1>
+      <p>Entre com Google para acessar seu painel financeiro. Cada usuário começa com uma conta zerada e vê somente os próprios dados.</p>
+      <button id="btnLogin" class="btn primary">Entrar com Google</button>
+      <small>Se for seu primeiro acesso, seu painel será criado automaticamente.</small>
+    </section>
+  </main>
 
-  <div class="shell">
+  <div id="appScreen" class="app hidden">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="logo">M</div>
+        <div class="avatar-letter" id="avatarLetter">M</div>
         <div>
-          <h1>Maycon</h1>
-          <p>Financeiro Cloud</p>
+          <h1 id="brandName">Finanças</h1>
+          <p>Dashboard pessoal</p>
+        </div>
+      </div>
+
+      <div class="user-card">
+        <img id="userPhoto" alt="Foto do usuário" />
+        <div>
+          <strong id="userFirstName">Usuário</strong>
+          <small id="userEmail"></small>
         </div>
       </div>
 
@@ -36,17 +50,23 @@
         <button class="nav" data-page="config">⚙️ Config</button>
       </nav>
 
-      <div class="sidebar-card">
-        <small>Sobra prevista</small>
+      <div class="sidebar-kpi">
+        <span>Sobra prevista</span>
         <strong id="sidebarSobra">R$ 0,00</strong>
-        <span id="sidebarStatus">Dentro do plano</span>
+        <small id="sidebarStatus">Dentro do plano</small>
       </div>
     </aside>
 
-    <main class="main">
+    <section class="mobile-bar">
+      <button id="menuToggle">☰</button>
+      <strong id="mobileName">Finanças</strong>
+      <button id="btnLogoutMobile">Sair</button>
+    </section>
+
+    <section class="content">
       <header class="header">
         <div>
-          <small class="pill">Sincronização PC + Celular</small>
+          <span class="pill">V5 Cloud</span>
           <h2 id="pageTitle">Dashboard</h2>
         </div>
         <div class="header-actions">
@@ -58,7 +78,7 @@
       <section class="page active" id="dashboard">
         <div class="hero">
           <div>
-            <p>Saldo disponível previsto</p>
+            <p id="welcomeText">Olá!</p>
             <h3 id="saldoHero">R$ 0,00</h3>
             <span id="fraseHero">Controle seu mês sem complicação.</span>
           </div>
@@ -72,8 +92,8 @@
 
         <div class="kpis">
           <article><span>Salário</span><strong id="kpiSalario">R$ 0,00</strong></article>
-          <article><span>Fixos</span><strong id="kpiFixos">R$ 0,00</strong></article>
-          <article><span>Extras</span><strong id="kpiExtras">R$ 0,00</strong></article>
+          <article><span>Contas</span><strong id="kpiFixos">R$ 0,00</strong></article>
+          <article><span>Gastos</span><strong id="kpiExtras">R$ 0,00</strong></article>
           <article><span>Dívidas</span><strong id="kpiDividas">R$ 0,00</strong></article>
           <article class="purple"><span>Reserva</span><strong id="kpiReserva">R$ 0,00</strong></article>
         </div>
@@ -81,23 +101,27 @@
         <div class="grid">
           <article class="panel">
             <div class="panel-head"><h3>Contas próximas</h3><span id="contasPagasResumo"></span></div>
-            <div class="list" id="dashContas"></div>
+            <div id="dashContas" class="list"></div>
           </article>
+
           <article class="panel">
             <div class="panel-head"><h3>Gastos por categoria</h3><span>Mês atual</span></div>
             <canvas id="chartCategorias"></canvas>
           </article>
+
           <article class="panel">
-            <div class="panel-head"><h3>Distribuição do salário</h3><span>Visão geral</span></div>
+            <div class="panel-head"><h3>Distribuição</h3><span>Salário</span></div>
             <canvas id="chartDistribuicao"></canvas>
           </article>
+
           <article class="panel">
             <div class="panel-head"><h3>Alertas</h3><span>Automático</span></div>
-            <div class="alerts" id="alertas"></div>
+            <div id="alertas"></div>
           </article>
+
           <article class="panel full">
             <div class="panel-head"><h3>Metas</h3><span>Progresso</span></div>
-            <div class="goals" id="dashMetas"></div>
+            <div id="dashMetas" class="goals"></div>
           </article>
         </div>
       </section>
@@ -109,40 +133,37 @@
             <input id="contaNome" placeholder="Nome" />
             <input id="contaValor" type="number" step="0.01" placeholder="Valor" />
             <input id="contaDia" type="number" placeholder="Vence dia" />
-            <select id="contaStatus">
-              <option>Pendente</option><option>Pago</option><option>Atrasado</option>
-            </select>
+            <select id="contaStatus"><option>Pendente</option><option>Pago</option><option>Atrasado</option></select>
             <button class="btn primary" id="addConta">Adicionar</button>
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h3>Contas cadastradas</h3><span>mude o status em 1 clique</span></div>
-          <div class="list" id="listaContas"></div>
+          <div class="panel-head"><h3>Contas cadastradas</h3><span>Status editável</span></div>
+          <div id="listaContas" class="list"></div>
         </article>
       </section>
 
       <section class="page" id="gastos">
         <article class="panel">
-          <div class="panel-head"><h3>Novo gasto</h3><span>lazer, mercado, transporte...</span></div>
+          <div class="panel-head"><h3>Novo gasto</h3><span>Lançamento diário</span></div>
           <div class="form">
             <input id="gastoDesc" placeholder="Descrição" />
             <input id="gastoValor" type="number" step="0.01" placeholder="Valor" />
             <select id="gastoCat">
-              <option>Alimentação</option><option>Transporte</option><option>Lazer</option>
-              <option>Tecnologia</option><option>Casa</option><option>Faculdade</option><option>Outros</option>
+              <option>Alimentação</option><option>Transporte</option><option>Lazer</option><option>Tecnologia</option><option>Casa</option><option>Faculdade</option><option>Outros</option>
             </select>
             <button class="btn primary" id="addGasto">Adicionar</button>
           </div>
         </article>
         <article class="panel">
           <div class="panel-head"><h3>Gastos lançados</h3><span id="totalGastos"></span></div>
-          <div class="list" id="listaGastos"></div>
+          <div id="listaGastos" class="list"></div>
         </article>
       </section>
 
       <section class="page" id="parcelas">
         <article class="panel">
-          <div class="panel-head"><h3>Nova dívida/parcelamento</h3><span>cartão, empréstimo, fone...</span></div>
+          <div class="panel-head"><h3>Novo parcelamento</h3><span>Cartão, empréstimo, compras</span></div>
           <div class="form">
             <input id="parcelaNome" placeholder="Nome" />
             <input id="parcelaValor" type="number" step="0.01" placeholder="Valor da parcela" />
@@ -152,13 +173,13 @@
         </article>
         <article class="panel">
           <div class="panel-head"><h3>Parcelamentos</h3><span id="totalParcelas"></span></div>
-          <div class="list" id="listaParcelas"></div>
+          <div id="listaParcelas" class="list"></div>
         </article>
       </section>
 
       <section class="page" id="metas">
         <article class="panel">
-          <div class="panel-head"><h3>Nova meta</h3><span>reserva, faculdade, PC...</span></div>
+          <div class="panel-head"><h3>Nova meta</h3><span>Reserva, faculdade, projetos</span></div>
           <div class="form">
             <input id="metaNome" placeholder="Nome" />
             <input id="metaAtual" type="number" step="0.01" placeholder="Atual" />
@@ -167,34 +188,28 @@
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h3>Minhas metas</h3><span>atualize quando guardar</span></div>
-          <div class="goals" id="listaMetas"></div>
+          <div class="panel-head"><h3>Minhas metas</h3><span>Atualize o valor guardado</span></div>
+          <div id="listaMetas" class="goals"></div>
         </article>
       </section>
 
       <section class="page" id="config">
         <article class="panel">
-          <div class="panel-head"><h3>Configuração principal</h3><span>salário e nuvem</span></div>
+          <div class="panel-head"><h3>Configuração</h3><span>Salário e conta</span></div>
           <div class="form">
             <input id="salarioInput" type="number" step="0.01" placeholder="Salário líquido" />
             <button class="btn primary" id="saveSalario">Salvar salário</button>
           </div>
-
-          <div class="cloud-box">
-            <h3>Status da nuvem</h3>
-            <p id="cloudStatus">Verificando...</p>
-            <button class="btn primary" id="btnSyncNow">Sincronizar agora</button>
-          </div>
-
-          <div class="backup">
+          <div class="backup-actions">
             <button class="btn glass" id="exportar">Exportar backup</button>
             <label class="btn glass">Importar backup <input id="importar" type="file" accept="application/json" hidden /></label>
-            <button class="btn danger" id="resetar">Apagar tudo</button>
+            <button class="btn danger" id="resetar">Resetar meus dados</button>
+            <button class="btn glass" id="btnLogout">Sair da conta</button>
           </div>
-          <p class="muted">Com Firebase configurado, o mesmo conteúdo aparece no PC e no celular.</p>
+          <p class="muted">Cada conta Google tem dados próprios. Usuários novos começam com painel zerado.</p>
         </article>
       </section>
-    </main>
+    </section>
   </div>
 
   <script type="module" src="app.js"></script>
